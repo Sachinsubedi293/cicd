@@ -2,9 +2,11 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [master]
+    branches:
+      - master
   pull_request:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   build-and-test:
@@ -28,12 +30,15 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Ensure dist folder exists
+        run: ls -la dist/  # Debugging step
+
       - name: Upload production build
         uses: actions/upload-artifact@v4
         with:
           name: deployment-assets
-          path: dist/  # Update this to match your build output directory
-          retention-days: 1
+          path: dist/  # Ensure build output exists here
+          retention-days: 3  # Increase retention
 
   deploy:
     needs: build-and-test
@@ -47,9 +52,12 @@ jobs:
           name: deployment-assets
           path: dist/
 
+      - name: Verify downloaded files
+        run: ls -la dist/  # Debugging step
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GIT_TOKEN }}
-          publish_dir: ./dist  # Must match your build output directory
-          keep_files: false    # Clean existing files before deployment
+          publish_dir: ./dist
+          keep_files: false
